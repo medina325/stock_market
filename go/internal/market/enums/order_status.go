@@ -1,6 +1,6 @@
 package enums
 
 const (
-	Open = 0
-	Sold = 1
+	Open   = 0
+	Closed = 1
 )

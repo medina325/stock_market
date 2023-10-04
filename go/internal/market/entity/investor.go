@@ -57,7 +57,6 @@ func (i *Investor) UpdateAssetPosition(assetID string, sharesCount int) {
 		return
 	}
 
-	// If a position already exists, update the shares count.
 	assetPosition.Shares += sharesCount
 }
 

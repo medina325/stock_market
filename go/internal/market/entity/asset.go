@@ -11,7 +11,7 @@ type Asset struct {
 	MarketVolume int
 }
 
-func (a *Asset) NewAsset(id string, name string, marketV int) *Asset {
+func NewAsset(id string, name string, marketV int) *Asset {
 	return &Asset{
 		ID:           id,
 		Name:         name,

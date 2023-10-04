@@ -14,7 +14,7 @@ type Order struct {
 	Transactions  []*Transaction
 }
 
-func (o *Order) NewOrder(orderID string, investor *Investor, asset *Asset, shares int, price float64, orderType int) *Order {
+func NewOrder(orderID string, investor *Investor, asset *Asset, shares int, price float64, orderType int) *Order {
 	return &Order{
 		ID:            orderID,
 		Investor:      investor,
@@ -26,4 +26,12 @@ func (o *Order) NewOrder(orderID string, investor *Investor, asset *Asset, share
 		Status:        enums.Open,
 		Transactions:  []*Transaction{},
 	}
+}
+
+func (o *Order) AddTransaction(t *Transaction) {
+	(*o).Transactions = append((*o).Transactions, t)
+}
+
+func (o *Order) TransactionsCount() int {
+	return len(o.Transactions)
 }

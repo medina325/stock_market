@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/medina325/stock_market/go/internal/market/enums"
 )
 
 type Transaction struct {
@@ -16,7 +17,7 @@ type Transaction struct {
 	DateTime     time.Time
 }
 
-func (t *Transaction) NewTransaction(sellingOrder *Order, buyingOrder *Order, shares int, price float64) *Transaction {
+func NewTransaction(sellingOrder *Order, buyingOrder *Order, shares int, price float64) *Transaction {
 	total := price * float64(shares)
 
 	return &Transaction{
@@ -27,5 +28,33 @@ func (t *Transaction) NewTransaction(sellingOrder *Order, buyingOrder *Order, sh
 		Price:        price,
 		Total:        total,
 		DateTime:     time.Now(),
+	}
+}
+
+func (t *Transaction) LiquidateBuyPendingShares(shares int) {
+	t.BuyingOrder.PendingShares -= shares
+}
+
+func (t *Transaction) LiquidateSellPendingShares(shares int) {
+	t.SellingOrder.PendingShares -= shares
+}
+
+func (t *Transaction) UpdateSellOrderAssetPosition() {
+	t.SellingOrder.Investor.UpdateAssetPosition(t.SellingOrder.Asset.ID, -t.Shares)
+}
+
+func (t *Transaction) UpdateBuyOrderAssetPosition() {
+	t.BuyingOrder.Investor.UpdateAssetPosition(t.BuyingOrder.Asset.ID, t.Shares)
+}
+
+func (t *Transaction) UpdateBuyOrderStatus() {
+	if t.BuyingOrder.PendingShares == 0 {
+		t.BuyingOrder.Status = enums.Closed
+	}
+}
+
+func (t *Transaction) UpdateSellOrderStatus() {
+	if t.SellingOrder.PendingShares == 0 {
+		t.SellingOrder.Status = enums.Closed
 	}
 }

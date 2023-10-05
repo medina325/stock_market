@@ -38,31 +38,49 @@ func getTransactionShares(sellingShares, buyingShares int) int {
 	return buyingShares
 }
 
-func (b *Book) Trade() {
-	buyOrders := NewOrderQueue()
-	sellOrders := NewOrderQueue()
+func addOrderQueueToAssetMap(mapping *map[string]*OrderQueue, assetID string) {
+	if (*mapping)[assetID] == nil {
+		(*mapping)[assetID] = NewOrderQueue()
+		heap.Init((*mapping)[assetID])
+	}
+}
 
-	heap.Init(buyOrders)
-	heap.Init(sellOrders)
+func (b *Book) Trade() {
+	buyOrders := make(map[string]*OrderQueue)
+	sellOrders := make(map[string]*OrderQueue)
 
 	for order := range b.OrdersChanIn {
-		if order.OrderType == enums.Buy {
-			buyOrders.Push(order)
+		assetID := order.Asset.ID
 
-			thereAreNoSellOrders := sellOrders.Len() == 0
+		addOrderQueueToAssetMap(&buyOrders, assetID)
+		addOrderQueueToAssetMap(&sellOrders, assetID)
+		// if buyOrders[assetID] == nil {
+		// 	buyOrders[assetID] = NewOrderQueue()
+		// 	heap.Init(buyOrders[assetID])
+		// }
+
+		// if buyOrders[assetID] == nil {
+		// 	buyOrders[assetID] = NewOrderQueue()
+		// 	heap.Init(buyOrders[assetID])
+		// }
+
+		if order.OrderType == enums.Buy {
+			buyOrders[assetID].Push(order)
+
+			thereAreNoSellOrders := sellOrders[assetID].Len() == 0
 
 			if thereAreNoSellOrders {
 				continue
 			}
 
-			thereAreNoSellOrderMatch := (*sellOrders)[0].Price > order.Price
-			orderMatchHasNoPendingShares := (*sellOrders)[0].PendingShares == 0
+			thereAreNoSellOrderMatch := (*sellOrders[assetID])[0].Price > order.Price
+			orderMatchHasNoPendingShares := (*sellOrders[assetID])[0].PendingShares == 0
 
 			if thereAreNoSellOrderMatch || orderMatchHasNoPendingShares {
 				continue
 			}
 
-			sellOrder := sellOrders.Pop().(*Order)
+			sellOrder := sellOrders[assetID].Pop().(*Order)
 
 			transactionShares := getTransactionShares(sellOrder.PendingShares, order.PendingShares)
 
@@ -79,25 +97,25 @@ func (b *Book) Trade() {
 
 			// REFACTOR
 			if sellOrder.PendingShares > 0 {
-				sellOrders.Push(sellOrder)
+				sellOrders[assetID].Push(sellOrder)
 			}
 		} else if order.OrderType == enums.Sell {
-			sellOrders.Push(order)
+			sellOrders[assetID].Push(order)
 
-			thereAreNoBuyOrder := buyOrders.Len() == 0
+			thereAreNoBuyOrder := buyOrders[assetID].Len() == 0
 
 			if thereAreNoBuyOrder {
 				continue
 			}
 
-			thereAreNoBuyOrderMatch := order.Price > (*buyOrders)[0].Price
-			orderMatchHasNoPendingShares := (*buyOrders)[0].PendingShares == 0
+			thereAreNoBuyOrderMatch := order.Price > (*buyOrders[assetID])[0].Price
+			orderMatchHasNoPendingShares := (*buyOrders[assetID])[0].PendingShares == 0
 
 			if thereAreNoBuyOrderMatch || orderMatchHasNoPendingShares {
 				continue
 			}
 
-			buyOrder := buyOrders.Pop().(*Order)
+			buyOrder := buyOrders[assetID].Pop().(*Order)
 
 			transactionShares := getTransactionShares(order.PendingShares, buyOrder.PendingShares)
 			transaction := NewTransaction(order, buyOrder, transactionShares, buyOrder.Price)
@@ -111,7 +129,7 @@ func (b *Book) Trade() {
 			b.OrderChanOut <- order
 
 			if buyOrder.PendingShares > 0 {
-				buyOrders.Push(buyOrder)
+				buyOrders[assetID].Push(buyOrder)
 			}
 		}
 	}

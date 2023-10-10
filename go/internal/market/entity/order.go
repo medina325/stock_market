@@ -29,7 +29,7 @@ func NewOrder(orderID string, investor *Investor, asset *Asset, shares int, pric
 }
 
 func (o *Order) AddTransaction(t *Transaction) {
-	(*o).Transactions = append((*o).Transactions, t)
+	o.Transactions = append(o.Transactions, t)
 }
 
 func (o *Order) TransactionsCount() int {

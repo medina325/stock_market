@@ -54,15 +54,6 @@ func (b *Book) Trade() {
 
 		addOrderQueueToAssetMap(&buyOrders, assetID)
 		addOrderQueueToAssetMap(&sellOrders, assetID)
-		// if buyOrders[assetID] == nil {
-		// 	buyOrders[assetID] = NewOrderQueue()
-		// 	heap.Init(buyOrders[assetID])
-		// }
-
-		// if buyOrders[assetID] == nil {
-		// 	buyOrders[assetID] = NewOrderQueue()
-		// 	heap.Init(buyOrders[assetID])
-		// }
 
 		if order.OrderType == enums.Buy {
 			buyOrders[assetID].Push(order)
@@ -139,11 +130,11 @@ func (b *Book) ExecuteTransaction(t *Transaction) {
 	defer b.Wg.Done()
 
 	t.UpdateSellOrderAssetPosition()
-	t.LiquidateSellPendingShares(t.Shares)
+	t.LiquidateSellPendingShares()
 	t.UpdateSellOrderStatus()
 
 	t.UpdateBuyOrderAssetPosition()
-	t.LiquidateBuyPendingShares(t.Shares)
+	t.LiquidateBuyPendingShares()
 	t.UpdateBuyOrderStatus()
 
 	b.Transactions = append(b.Transactions, t)

@@ -31,12 +31,12 @@ func NewTransaction(sellingOrder *Order, buyingOrder *Order, shares int, price f
 	}
 }
 
-func (t *Transaction) LiquidateBuyPendingShares(shares int) {
-	t.BuyingOrder.PendingShares -= shares
+func (t *Transaction) LiquidateBuyPendingShares() {
+	t.BuyingOrder.PendingShares -= t.Shares
 }
 
-func (t *Transaction) LiquidateSellPendingShares(shares int) {
-	t.SellingOrder.PendingShares -= shares
+func (t *Transaction) LiquidateSellPendingShares() {
+	t.SellingOrder.PendingShares -= t.Shares
 }
 
 func (t *Transaction) UpdateSellOrderAssetPosition() {
